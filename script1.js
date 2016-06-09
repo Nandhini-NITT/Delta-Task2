@@ -24,25 +24,41 @@ var myGameArea=
         clearInterval(this.interval);
     }
 };
-function component(x,y,color,width,height)
-{
+function component(x,y,width,height,type)
+{	
+	this.iswaiting=true;
+	this.isrunning=false;
+	this.isjumping=false;
+	this.iscrash=false;
+	this.startpos=0;
+	this.type=type;
 	this.x=x;
 	this.y=y;
-	this.color=color;
 	this.width=width;
 	this.height=height;
+	this.img=new Image();
+	this.img.onload=function()
+	{
+		document.body.appendChild(this.img);
+	}
+	if(this.type=="object")
+	this.img.src="images.png";
+	else if(this.type=="obstacle")
+	this.img.src="obstacle.png";
 	this.speedX=0;
 	this.update= function()
 	{	
 		ctx=myGameArea.context;
-		ctx.fillStyle=color;
-		ctx.fillRect(this.x,this.y,this.width,this.height);
+		if(this.type=="object")
+			ctx.drawImage(this.img,this.startpos,0,70,77,this.x,this.y,this.width,this.height);
+		else
+			ctx.drawImage(this.img,0,0,35,80,this.x,this.y,this.width,this.height);
 	}
 	this.crashWith = function(otherobj) {
-        var myleft = this.x;
-        var myright = this.x + (this.width);
+        var myleft = this.x+2;
+        var myright = this.x+1+ (this.width);
         var mytop = this.y;
-        var mybottom = this.y + (this.height);
+        var mybottom = this.y+1 + (this.height);
         var otherleft = otherobj.x;
         var otherright = otherobj.x + (otherobj.width);
         var othertop = otherobj.y;
@@ -54,40 +70,45 @@ function component(x,y,color,width,height)
         return crash;
     }
 }
-var x=80;var obstaclePos=0;
+var x=180;var obstaclePos=0;
 function addObstacle()
 {	
-	var minGap=100,maxGap=300,minHeight=20,maxHeight=60;
+	var minGap=250,maxGap=300,minHeight=20,maxHeight=60;
 	var gap = Math.floor(Math.random()*(maxGap-minGap+1)+minGap);
 	var height = Math.floor(Math.random()*(maxHeight-minHeight+1)+minHeight);
 	x=x+gap;
 	//if(x>screen.width-myGamePiece.width)
 		//x=80;
-	if(x>myGamePiece.x+myGamePiece.width)
+	if(x>myGamePiece.x+myGamePiece.width+20)
 	{
-	myObstacles[obstaclePos++]=new component(x,350-height, "green",10, height);
+	myObstacles[obstaclePos++]=new component(x,350-height,30, height,"obstacle");
 	myObstacles[obstaclePos-1].update();
 	}
 }
 function startGame()
 {
-	myGamePiece=new component(0,310,"red",40,40);
+	myGamePiece=new component(0,302,50,50,"object");
 	myGameArea.start();
+	document.getElementById("text-panel").innerHTML="<p>Press arrow up to start the Game</p>";
 	updateGame();
 }
-var frame;
+var frame,sprite;
 function updateGame()
 {	
+	
 	frame=requestAnimationFrame(updateGame);
-	if(myGamePiece.x==0)
+	
+if(myGamePiece.x==0 && !myGamePiece.iswaiting)
 		{
+		//clearInterval(sprite);
 		myObstacles=[];
 		obstaclePos=0;
 		myGameArea.frameno=0;
-		myGamePiece.speedX+=1;
+		var speed=myGamePiece.speedX+1;
+		myGamePiece.speedX=(speed>4)?speed:myGamePiece.speedX;
 		}
 	myGameArea.clear();
-	if(myGameArea.frameno==1||everyInterval(300))
+	if(myGameArea.frameno==1||everyInterval(150) && !myGamePiece.iswaiting)
 	{	
 		addObstacle();
 	}
@@ -95,49 +116,76 @@ function updateGame()
 		{
 			if(myGamePiece.crashWith(myObstacles[i]))
 				{
-				alert("Crashed");
+				myGamePiece.isrunning=false;
+				myGamePiece.iscrash=true;
+				myGamePiece.iswaiting=false;
+				document.getElementById("text-panel").innerHTML="<p>Oops! CRASH</p>";
 				cancelAnimationFrame(frame);
 				}
 		}
 	
-	for(var i=0;i<myObstacles.length;i++)
+	for(var i=0;(i<myObstacles.length && !myGamePiece.iswaiting);i++)
 		{	
-		
+			myObstacles[i].x-=2;
 			myObstacles[i].update();
 		}
 	
+	if(myGamePiece.iscrash)
+		{
+			myGamePiece.startpos=350;
+			myGamePiece.update();
+			return;
+		}
+	if(!myGamePiece.iswaiting)
+	{
 	myGamePiece.x+=1+myGamePiece.speedX;
+	document.getElementById("text-panel").innerHTML="<p>Run!!Run!!Run..</p>";
+	}
 	currentx=myGamePiece.x;
 	currenty=myGamePiece.y;
 	if (myGameArea.key && myGameArea.key == 38) {
+		myGamePiece.iswaiting=false;
 		jump = {
         start: {
             x: currentx,
-            y: 310
+            y: 302
         },
         control: {
-            x: currentx + 30,
+            x: currentx + 50,
             y: currenty - 280
         },
         end: {
-            x: currentx + 80 ,
-            y: 310
+            x: currentx + 130 ,
+            y: 302
         },
 		t:0
 		};
 		}
 		if (jump) {
-
+				myGamePiece.isjumping=true;
+				//myGamePiece.isrunning=false;
+				myGamePiece.startpos=0;
 			var pos = getQuadraticBezierXY(jump.start, jump.control, jump.end, jump.t / 100);
 			myGamePiece.x = pos.x;
 			myGamePiece.y = pos.y;
 			jump.t += 4;
 			if (jump.t > 100) {
 				jump = null;
-				
-		}
-
-    } 
+				myGamePiece.isrunning=true;
+				myGamePiece.startpos=140;
+			}
+				}
+		
+		if(myGamePiece.isrunning)
+	{
+	sprite=setInterval(function()
+	{
+	if(myGamePiece.startpos==140)
+		myGamePiece.startpos=210;
+	else if(myGamePiece.startpos==210)
+		myGamePiece.startpos=140;
+	},250);
+	}
 	if (myGamePiece.x>=screen.width-myGamePiece.width)
 			{
 			myGamePiece.x=0;

@@ -1,6 +1,25 @@
 canvas
 {
 	border:1px solid #d3d3d3;
-    background-color: #f1f1f1;
+    background-color: white;
 	border-bottom:2px solid black;
+}
+img
+{
+display:none;
+}
+#text-panel
+{
+margin: 0 auto;
+	position: absolute;
+    top: 100%;
+    left: 50%;
+    margin-right: -50%;
+    transform: translate(-50%, -50%);
+}
+p
+{
+	background-color:red;
+	font-size:2rem;
+	font-family: 'Indie Flower', cursive;
 }
