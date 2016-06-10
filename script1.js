@@ -1,4 +1,4 @@
-var myGamePiece,myObstacles=[],currentx,currenty,jump;
+var myGamePiece,myObstacles=[],currentx,currenty,jump,aud;
 var myGameArea=
 {
 	canvas: document.createElement("canvas"),
@@ -56,14 +56,14 @@ function component(x,y,width,height,type)
 			ctx.drawImage(this.img,0,0,35,80,this.x,this.y,this.width,this.height);
 	}
 	this.crashWith = function(otherobj) {
-        var myleft = this.x+2;
-        var myright = this.x+1+ (this.width);
+        var myleft = this.x;
+        var myright = this.x+ (this.width-2);
         var mytop = this.y;
-        var mybottom = this.y+1 + (this.height);
+        var mybottom = this.y + (this.height-2);
         var otherleft = otherobj.x;
-        var otherright = otherobj.x + (otherobj.width);
+        var otherright = otherobj.x + (otherobj.width-2);
         var othertop = otherobj.y;
-        var otherbottom = otherobj.y + (otherobj.height);
+        var otherbottom = otherobj.y + (otherobj.height-2);
         var crash = true;
         if ((mybottom < othertop) || (mytop > otherbottom) || (myright < otherleft) || (myleft > otherright)) {
             crash = false;
@@ -88,7 +88,7 @@ function addObstacle()
 }
 function startGame()
 {
-	var aud=document.getElementById("audio1");
+	aud=document.getElementById("audio1");
 	aud.load();
 	aud.play();
 	myGamePiece=new component(0,302,50,50,"object");
@@ -96,13 +96,28 @@ function startGame()
 	document.getElementById("text-panel").innerHTML="<p>Press arrow up to start the Game</p>";
 	updateGame();
 }
+var pause=0;
+function pause_game()
+{
+	pause=1;
+	aud.pause();
+	if(!myGamePiece.iscrash)
+	document.getElementById("buttons").innerHTML="<button id='play' onClick='play()'>Play <span class='glyphicon glyphicon-play'></span></button>";
+}
+function play()
+{
+	pause=0;
+	document.getElementById("buttons").innerHTML="<button id='pause' onClick='pause_game()'>Pause <span class='glyphicon glyphicon-pause'></span></button>";
+	aud.play();
+}	
+
 var frame,sprite;
 function updateGame()
 {	
 	
 	frame=requestAnimationFrame(updateGame);
 	
-if(myGamePiece.x==0 && !myGamePiece.iswaiting)
+if(pause==0 && myGamePiece.x==0 && !myGamePiece.iswaiting)
 		{
 		//clearInterval(sprite);
 		myObstacles=[];
@@ -119,7 +134,7 @@ if(myGamePiece.x==0 && !myGamePiece.iswaiting)
 		{
 			if(myGamePiece.crashWith(myObstacles[i]))
 				{
-				var aud=document.getElementById("audio1");
+				aud=document.getElementById("audio1");
 				aud.src="oops.mp3";
 				aud.loop=false;
 				aud.load();
@@ -128,14 +143,15 @@ if(myGamePiece.x==0 && !myGamePiece.iswaiting)
 				myGamePiece.iscrash=true;
 				myGamePiece.iswaiting=false;
 				document.getElementById("text-panel").innerHTML="<p>Oops! CRASH</p>";
-				
+				var ctx=myGameArea.context;
 				cancelAnimationFrame(frame);
 				}
 		}
 	
 	for(var i=0;(i<myObstacles.length && !myGamePiece.iswaiting);i++)
 		{	
-			myObstacles[i].x-=2;
+			if(pause==0)
+				myObstacles[i].x-=2;
 			myObstacles[i].update();
 		}
 	
@@ -145,7 +161,7 @@ if(myGamePiece.x==0 && !myGamePiece.iswaiting)
 			myGamePiece.update();
 			return;
 		}
-	if(!myGamePiece.iswaiting)
+	if(!myGamePiece.iswaiting && pause==0)
 	{
 	myGamePiece.x+=1+myGamePiece.speedX;
 	document.getElementById("text-panel").innerHTML="<p>Run!!Run!!Run..</p>";
@@ -153,7 +169,7 @@ if(myGamePiece.x==0 && !myGamePiece.iswaiting)
 	}
 	currentx=myGamePiece.x;
 	currenty=myGamePiece.y;
-	if (myGameArea.key && myGameArea.key == 38) {
+	if (myGameArea.key && myGameArea.key == 38 && pause==0) {
 		myGamePiece.iswaiting=false;
 		jump = {
         start: {
@@ -186,13 +202,13 @@ if(myGamePiece.x==0 && !myGamePiece.iswaiting)
 			}
 				}
 		
-		if(myGamePiece.isrunning)
+		if(myGamePiece.isrunning && pause==0)
 	{
 	sprite=setInterval(function()
 	{
-	if(myGamePiece.startpos==140)
+	if(myGamePiece.startpos==140 && pause==0)
 		myGamePiece.startpos=210;
-	else if(myGamePiece.startpos==210)
+	else if(myGamePiece.startpos==210 && pause==0)
 		myGamePiece.startpos=140;
 	},250);
 	}
