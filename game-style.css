@@ -8,18 +8,37 @@ img
 {
 display:none;
 }
-#text-panel
+#wrapper
 {
 margin: 0 auto;
 	position: absolute;
-    top: 100%;
+    top: 80%;
     left: 50%;
     margin-right: -50%;
     transform: translate(-50%, -50%);
 }
+table
+{
+	position:relative;
+	top:3rem;
+	width:18rem;
+}
+table,th,td
+{
+border:1px solid black;
+border-collapse:none;
+position:relative;
+}
+#score
+{
+	font-size:2rem;
+	background-color:none;
+	text-align:center;
+}	
 p
 {
 	background-color:red;
 	font-size:2rem;
 	font-family: 'Indie Flower', cursive;
+	text-align:center;
 }

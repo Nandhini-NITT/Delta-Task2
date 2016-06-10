@@ -26,6 +26,7 @@ var myGameArea=
 };
 function component(x,y,width,height,type)
 {	
+	this.score=0;
 	this.iswaiting=true;
 	this.isrunning=false;
 	this.isjumping=false;
@@ -87,6 +88,9 @@ function addObstacle()
 }
 function startGame()
 {
+	var aud=document.getElementById("audio1");
+	aud.load();
+	aud.play();
 	myGamePiece=new component(0,302,50,50,"object");
 	myGameArea.start();
 	document.getElementById("text-panel").innerHTML="<p>Press arrow up to start the Game</p>";
@@ -104,8 +108,7 @@ if(myGamePiece.x==0 && !myGamePiece.iswaiting)
 		myObstacles=[];
 		obstaclePos=0;
 		myGameArea.frameno=0;
-		var speed=myGamePiece.speedX+1;
-		myGamePiece.speedX=(speed>4)?speed:myGamePiece.speedX;
+		myGamePiece.speedX+=0.2;
 		}
 	myGameArea.clear();
 	if(myGameArea.frameno==1||everyInterval(150) && !myGamePiece.iswaiting)
@@ -116,10 +119,16 @@ if(myGamePiece.x==0 && !myGamePiece.iswaiting)
 		{
 			if(myGamePiece.crashWith(myObstacles[i]))
 				{
+				var aud=document.getElementById("audio1");
+				aud.src="oops.mp3";
+				aud.loop=false;
+				aud.load();
+				aud.play();
 				myGamePiece.isrunning=false;
 				myGamePiece.iscrash=true;
 				myGamePiece.iswaiting=false;
 				document.getElementById("text-panel").innerHTML="<p>Oops! CRASH</p>";
+				
 				cancelAnimationFrame(frame);
 				}
 		}
@@ -140,6 +149,7 @@ if(myGamePiece.x==0 && !myGamePiece.iswaiting)
 	{
 	myGamePiece.x+=1+myGamePiece.speedX;
 	document.getElementById("text-panel").innerHTML="<p>Run!!Run!!Run..</p>";
+	document.getElementById("score").innerHTML=1+parseInt(document.getElementById("score").innerHTML);
 	}
 	currentx=myGamePiece.x;
 	currenty=myGamePiece.y;
