@@ -1,4 +1,6 @@
 var myGamePiece,myObstacles=[],currentx,currenty,jump,aud;
+var Trex=[[34.015,3.0236,30.992,17.007],[34.015,20.031,26.834,7.937],[18.141,57.071,23.055,15.874],[18.898,26.079,35.906,12.850],[18.141,38.929,26.834,18.142],[1,24.945,13.984,24.189]];
+var Cactus=[[13.984,0,9.827,18.9],[1.889,18.898,38.173,29.102],[13.984,48,9.827,26.079]];
 var myGameArea=
 {
 	canvas: document.createElement("canvas"),
@@ -24,6 +26,7 @@ var myGameArea=
         clearInterval(this.interval);
     }
 };
+var j=0;
 function component(x,y,width,height,type)
 {	
 	this.score=0;
@@ -51,25 +54,47 @@ function component(x,y,width,height,type)
 	{	
 		ctx=myGameArea.context;
 		if(this.type=="object")
-			ctx.drawImage(this.img,this.startpos,0,70,77,this.x,this.y,this.width,this.height);
+			ctx.drawImage(this.img,this.startpos,0,68,72,this.x,this.y,this.width,this.height);
 		else
-			ctx.drawImage(this.img,0,0,35,80,this.x,this.y,this.width,this.height);
+			ctx.drawImage(this.img,0,0,38,75,this.x,this.y,this.width,this.height);
 	}
-	this.crashWith = function(otherobj) {
-        var myleft = this.x;
-        var myright = this.x+ (this.width-2);
-        var mytop = this.y;
-        var mybottom = this.y + (this.height-2);
-        var otherleft = otherobj.x;
-        var otherright = otherobj.x + (otherobj.width-2);
-        var othertop = otherobj.y;
-        var otherbottom = otherobj.y + (otherobj.height-2);
-        var crash = true;
-        if ((mybottom < othertop) || (mytop > otherbottom) || (myright < otherleft) || (myleft > otherright)) {
-            crash = false;
-        }
-        return crash;
-    }
+	this.crashWith = function(otherobj) 
+	{
+        var crash=[],crashed=false ;
+		for(var i=0;i<6;i++)
+		{
+			for(var k=0;k<2;k++)
+				crash[k]=true;
+			for(var j=0;j<2;j++)
+			{
+			var myleft=this.x+Trex[i][0];
+			var mytop=this.y+Trex[i][1];
+			var myright=Trex[i][2]+myleft;
+			var mybottom=Trex[i][3]+mytop;
+			var otherleft=otherobj.x+Cactus[j][0];
+			var othertop=otherobj.y+Cactus[j][1];
+			var otherright=otherleft+Cactus[j][2];
+			var otherbottom=othertop+((otherobj.height/75)*Cactus[j][3]);
+			if ((mybottom < othertop) ||
+               (mytop > otherbottom) ||
+               (myright < otherleft) ||
+               (myleft > otherright)) 
+			{
+           crash[j] = false;
+			}
+			}
+			for(var k=0;k<2;k++)
+			{
+			if(crash[k])
+				{
+				crashed=true;
+				break;
+				}
+			}
+		}
+		
+		return crashed;
+	}
 }
 var x=180;var obstaclePos=0;
 function addObstacle()
@@ -78,11 +103,9 @@ function addObstacle()
 	var gap = Math.floor(Math.random()*(maxGap-minGap+1)+minGap);
 	var height = Math.floor(Math.random()*(maxHeight-minHeight+1)+minHeight);
 	x=x+gap;
-	//if(x>screen.width-myGamePiece.width)
-		//x=80;
 	if(x>myGamePiece.x+myGamePiece.width+20)
 	{
-	myObstacles[obstaclePos++]=new component(x,350-height,30, height,"obstacle");
+	myObstacles[obstaclePos++]=new component(x,350-height,38, height,"obstacle");
 	myObstacles[obstaclePos-1].update();
 	}
 }
@@ -95,6 +118,7 @@ function startGame()
 	myGameArea.start();
 	document.getElementById("text-panel").innerHTML="<p>Press arrow up to start the Game</p>";
 	updateGame();
+	
 }
 var pause=0;
 function pause_game()
@@ -111,15 +135,14 @@ function play()
 	aud.play();
 }	
 
-var frame,sprite;
+var frame,sprite,obstaclehit;
 function updateGame()
 {	
 	
 	frame=requestAnimationFrame(updateGame);
 	
-if(pause==0 && myGamePiece.x==0 && !myGamePiece.iswaiting)
+if(pause==0 && myGamePiece.x==0 && !myGamePiece.iswaiting &&!myGamePiece.iscrash)
 		{
-		//clearInterval(sprite);
 		myObstacles=[];
 		obstaclePos=0;
 		myGameArea.frameno=0;
@@ -132,6 +155,7 @@ if(pause==0 && myGamePiece.x==0 && !myGamePiece.iswaiting)
 	}
 	for(var i=0;i<myObstacles.length;i++)
 		{
+			
 			if(myGamePiece.crashWith(myObstacles[i]))
 				{
 				aud=document.getElementById("audio1");
@@ -161,7 +185,7 @@ if(pause==0 && myGamePiece.x==0 && !myGamePiece.iswaiting)
 			myGamePiece.update();
 			return;
 		}
-	if(!myGamePiece.iswaiting && pause==0)
+	if(!myGamePiece.iswaiting && pause==0 && !myGamePiece.iscrash)
 	{
 	myGamePiece.x+=1+myGamePiece.speedX;
 	document.getElementById("text-panel").innerHTML="<p>Run!!Run!!Run..</p>";
@@ -189,7 +213,6 @@ if(pause==0 && myGamePiece.x==0 && !myGamePiece.iswaiting)
 		}
 		if (jump) {
 				myGamePiece.isjumping=true;
-				//myGamePiece.isrunning=false;
 				myGamePiece.startpos=0;
 			var pos = getQuadraticBezierXY(jump.start, jump.control, jump.end, jump.t / 100);
 			myGamePiece.x = pos.x;
@@ -217,6 +240,7 @@ if(pause==0 && myGamePiece.x==0 && !myGamePiece.iswaiting)
 			myGamePiece.x=0;
 			x=80;
 			}
+	
 	myGamePiece.update();
 	myGameArea.frameno++;
 	
