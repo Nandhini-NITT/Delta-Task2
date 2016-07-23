@@ -43,7 +43,7 @@ function component(x,y,width,height,type)
 	this.img=new Image();
 	this.img.onload=function()
 	{
-		document.body.appendChild(this.img);
+		$('body').append(this.img);
 	}
 	if(this.type=="object")
 	this.img.src="images.png";
@@ -111,6 +111,14 @@ function addObstacle()
 }
 function startGame()
 {
+	console.log(localStorage);
+	if(localStorage['highScore']===undefined)
+		document.getElementById('showHighScore').style.display='none';
+	else
+		{
+			document.getElementById('showHighScore').style.display='table-cell';
+			document.getElementById('highScore').innerHTML=localStorage['highScore'];
+		}
 	aud=document.getElementById("audio1");
 	aud.load();
 	aud.play();
@@ -169,6 +177,15 @@ if(pause==0 && myGamePiece.x==0 && !myGamePiece.iswaiting &&!myGamePiece.iscrash
 				document.getElementById("text-panel").innerHTML="<p>Oops! CRASH</p>";
 				var ctx=myGameArea.context;
 				cancelAnimationFrame(frame);
+				var score=document.getElementById("score").innerHTML;
+				var maxscore;
+				if(localStorage['highScore']===undefined || score>localStorage['highScore'])
+				{
+					maxscore=score;
+				}
+				else
+					maxscore=localStorage['highScore'];
+				localStorage.setItem('highScore',maxscore);
 				}
 		}
 	
@@ -190,6 +207,10 @@ if(pause==0 && myGamePiece.x==0 && !myGamePiece.iswaiting &&!myGamePiece.iscrash
 	myGamePiece.x+=1+myGamePiece.speedX;
 	document.getElementById("text-panel").innerHTML="<p>Run!!Run!!Run..</p>";
 	document.getElementById("score").innerHTML=1+parseInt(document.getElementById("score").innerHTML);
+	if(parseInt(document.getElementById("score").innerHTML)>parseInt(document.getElementById("highScore").innerHTML))
+	{
+		document.getElementById("highScore").innerHTML=1+parseInt(document.getElementById("highScore").innerHTML);
+	}
 	}
 	currentx=myGamePiece.x;
 	currenty=myGamePiece.y;
